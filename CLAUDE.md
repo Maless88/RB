@@ -97,6 +97,10 @@ Monorepo TypeScript-first: NestJS backend services, Next.js frontend, PostgreSQL
 
 ```bash
 # Full bootstrap (install, start infra, migrate, seed)
+# NEVER run `pnpm bootstrap`/`pnpm install` as root or via sudo, and never inside a
+# container that bind-mounts this repo as root — it leaves node_modules root-owned,
+# breaking every subsequent pnpm command for the normal user (fix: `sudo chown -R
+# $USER node_modules apps/*/node_modules packages/*/node_modules`).
 pnpm bootstrap
 
 # Infra

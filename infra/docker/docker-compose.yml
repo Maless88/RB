@@ -105,6 +105,7 @@ services:
         BUILD_TIME: ${BUILD_TIME:-unknown}
     restart: unless-stopped
     environment:
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
       <<: *common-env
       CORE_API_PORT: "3001"
       AUTH_ACCESS_PORT: "3002"

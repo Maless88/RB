@@ -325,6 +325,14 @@ TITLE NAMING CONVENTION: Phase title MUST follow the format "Area — descriptio
           type: "string",
           description: "Filter by memory entry type",
         },
+        limit: {
+          type: "number",
+          description: "Max entries to return (default 10, max 50). Omit for the default.",
+        },
+        cursor: {
+          type: "string",
+          description: "Pagination cursor from a previous response's nextCursor.",
+        },
       },
       required: ["projectId"],
     },
@@ -1501,8 +1509,12 @@ export async function handleToolCall(
         ? undefined
         : boundedNumber(args.limit, 50, 200, "limit");
 
+      const status = args.status as string | undefined;
       const result = await client.listTasks(args.projectId as string, {
-        status: args.status as string | undefined,
+        status,
+        // Default to open statuses when the caller does not specify one:
+        // "active" must not dump the closed history (done/cancelled).
+        statuses: status ? undefined : [...OPEN_TASK_STATUSES],
         limit,
         cursor: args.cursor as string | undefined,
         compact: args.compact as boolean | undefined,
@@ -1625,9 +1637,16 @@ export async function handleToolCall(
     }
 
     case "get_project_memory": {
+      const limit = boundedNumber(
+        args.limit,
+        DEFAULT_SUMMARY_MEMORY_LIMIT,
+        MAX_AGGREGATE_LIMIT,
+        "limit",
+      );
       const result = await client.listMemory(
         args.projectId as string,
         args.type as string | undefined,
+        { limit, cursor: args.cursor as string | undefined },
       );
       return jsonResponse(result);
     }
